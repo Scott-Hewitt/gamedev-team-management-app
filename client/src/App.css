@@ -1,0 +1,53 @@
+/* Custom styles for Game Dev Management System */
+
+/* Override Bootstrap styles */
+.navbar-brand {
+  font-weight: bold;
+}
+
+/* Dashboard cards */
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Status badges */
+.badge {
+  font-size: 0.85em;
+  padding: 0.4em 0.6em;
+}
+
+/* Form styles */
+.form-label {
+  font-weight: 500;
+}
+
+/* Table styles */
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Auth pages */
+.auth-container {
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+/* Footer */
+footer {
+  margin-top: 3rem;
+}
+
+/* Utility classes */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.min-vh-100 {
+  min-height: 100vh;
+}
