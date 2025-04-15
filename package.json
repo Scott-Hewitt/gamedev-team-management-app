@@ -1,10 +1,33 @@
 {
-  "name": "${PROJECT_NAME}",
+  "name": "game-dev-management",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Game Development Team Management System",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup-db": "node setup-db.js",
+    "seed-user": "node seed-user.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "axios": "^1.8.4",
+    "bcryptjs": "^3.0.2",
+    "bootstrap": "^5.3.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.0",
+    "node-fetch": "^3.3.2",
+    "react-bootstrap": "^2.10.9",
+    "react-hook-form": "^7.55.0",
+    "react-router-dom": "^7.5.0",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "sequelize-cli": "^6.6.2"
+  }
 }
