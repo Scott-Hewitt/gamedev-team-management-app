@@ -2,11 +2,16 @@
 
 ## Features
 
-- User authentication and authorization
-- Project management
-- Task tracking and assignment
-- Progress monitoring
-- Team collaboration
+- User authentication and authorization with role-based access control
+- Project management with status tracking and team assignment
+- Task tracking with priority, status, and assignment capabilities
+- Progress monitoring and reporting
+- Team collaboration and communication
+- Comments system for tasks and projects
+- Comprehensive API for integration with other tools
+- Monitoring and observability with Prometheus/Grafana
+- Database migrations and seeding for easy setup
+- Docker support for development and production environments
 
 ## Database Schema
 
@@ -41,21 +46,39 @@
                       | createdAt   |
                       | updatedAt   |
                       +-------------+
+                            ^
+                            |
+                      +-------------+
+                      |   Comments  |
+                      +-------------+
+                      | id          |
+                      | content     |
+                      | user_id     |
+                      | task_id     |
+                      | createdAt   |
+                      | updatedAt   |
+                      +-------------+
 ```
 
 ## Tech Stack
 
 - **Backend**: Node.js, Express
-- **Database**: MySQL
+- **Database**: MySQL 8.0
 - **ORM**: Sequelize
 - **Authentication**: JWT
+- **Frontend**: React, Vite
+- **Monitoring**: Prometheus, Grafana
+- **Containerization**: Docker, Docker Compose
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
-- MySQL (v5.7 or higher)
+- MySQL (v8.0 or higher)
+- Docker and Docker Compose (for containerized setup)
 
 ## Installation
+
+### Option 1: Running with Docker
 
 1. Clone the repository:
    ```
@@ -63,12 +86,45 @@
    cd game-dev-management
    ```
 
-2. Install dependencies:
+2. Create secrets directory and files:
+   ```
+   mkdir -p secrets
+   echo "your_db_password" > secrets/db_password.txt
+   echo "your_root_password" > secrets/db_root_password.txt
+   echo "your_jwt_secret" > secrets/jwt_secret.txt
+   ```
+
+3. Start the application:
+   ```
+   docker-compose up
+   ```
+
+4. Access the application:
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:5000
+   - Monitoring (if enabled): http://localhost:3000 (Grafana), http://localhost:9090 (Prometheus)
+
+### Option 2: Running Locally (without Docker)
+
+1. Clone the repository:
+   ```
+   git clone <repository-url>
+   cd game-dev-management
+   ```
+
+2. Install backend dependencies:
    ```
    npm install
    ```
 
-3. Configure environment variables:
+3. Install frontend dependencies:
+   ```
+   cd client
+   npm install
+   cd ..
+   ```
+
+4. Configure environment variables:
    - Create a `.env` file in the root directory
    - Add the following variables:
      ```
@@ -85,9 +141,13 @@
      # JWT Configuration
      JWT_SECRET=your_jwt_secret_key_here
      JWT_EXPIRES_IN=1d
+     
+     # User Creation Options
+     CREATE_TEST_USERS=true
+     FORCE_ADMIN_PASSWORD_RESET=false
      ```
 
-4. Create the database:
+5. Create the database:
    ```
    mysql -u root -p
    ```
@@ -96,20 +156,103 @@
    EXIT;
    ```
 
-5. Run database migrations:
+6. Run database migrations and seed the database:
    ```
-   npx sequelize-cli db:migrate
-   ```
-
-6. Seed the database with initial data:
-   ```
-   npx sequelize-cli db:seed:all
+   npm run setup-db
    ```
 
-7. Start the server:
+7. Start the backend server (with nodemon):
    ```
    npm run dev
    ```
+
+8. In a separate terminal, start the frontend:
+   ```
+   cd client
+   npm run dev
+   ```
+
+9. Access the application:
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:5000
+
+## Default Users
+
+After setup, the following users are available:
+
+| Username   | Email                  | Password    | Role      |
+|------------|------------------------|-------------|-----------|
+| admin      | admin@gamedev.com      | password123 | admin     |
+| developer1 | developer1@example.com | password123 | developer |
+| manager1   | manager1@example.com   | password123 | manager   |
+| designer1  | designer1@example.com  | password123 | designer  |
+| tester1    | tester1@example.com    | password123 | tester    |
+
+## User Roles and Permissions
+
+| Role      | Permissions                                                                |
+|-----------|----------------------------------------------------------------------------|
+| admin     | Full access to all features, user management, system configuration         |
+| manager   | Create/manage projects, assign tasks, view reports, manage team members    |
+| developer | View assigned tasks, update task status, add comments, track time          |
+| designer  | Similar to developer, focused on design tasks                              |
+| tester    | Create/manage test cases, report bugs, verify fixes                        |
+
+## Project Structure
+
+```
+game-dev-management/
+├── client/                 # Frontend React application
+├── server/                 # Backend Node.js application
+│   ├── controllers/        # API controllers
+│   ├── middleware/         # Express middleware
+│   ├── models/             # Sequelize models
+│   ├── routes/             # API routes
+│   └── utils/              # Utility functions
+├── scripts/                # Database and setup scripts
+├── logs/                   # Application logs
+├── docker/                 # Docker configuration files
+│   ├── compose/            # Docker compose files
+│   │   ├── docker-compose.prod.yml      # Production configuration
+│   │   └── docker-compose.monitoring.yml # Monitoring configuration
+│   └── dockerfiles/        # Dockerfiles
+├── secrets/                # Secret files (not in git)
+├── .env                    # Environment variables (not in git)
+└── docker-compose.yml      # Docker compose configuration
+```
+
+## Development Tools
+
+### API Testing
+
+The project includes a REST client file (`presentation_materials/api-demo.http`) that can be used with VS Code's REST Client extension or similar tools to test API endpoints.
+
+### Database Management
+
+- **Migrations**: `npx sequelize-cli db:migrate`
+- **Rollback**: `npx sequelize-cli db:migrate:undo`
+- **Seeding**: `npx sequelize-cli db:seed:all`
+
+### Monitoring
+
+To enable monitoring with Prometheus and Grafana:
+
+```
+docker-compose -f docker-compose.yml -f docker/compose/docker-compose.monitoring.yml up
+```
+
+Access Grafana at http://localhost:3000 (default credentials: admin/admin)
+
+## Production Deployment
+
+For production deployment:
+
+1. Configure production environment variables
+2. Use the production Docker Compose file:
+   ```
+   docker-compose -f docker/compose/docker-compose.prod.yml up -d
+   ```
+3. Set `CREATE_TEST_USERS=false` and `FORCE_ADMIN_PASSWORD_RESET=true` for security
 
 ## API Documentation
 
@@ -122,6 +265,16 @@
 - **Login User**
   - `POST /api/users/login`
   - Body: `{ email, password }`
+
+- **Reset Password**
+  - `POST /api/users/reset-password`
+  - Body: `{ email }`
+  - Auth: Not required
+
+- **Change Password**
+  - `PUT /api/users/change-password`
+  - Body: `{ currentPassword, newPassword }`
+  - Auth: Required
 
 ### Users
 
@@ -216,3 +369,57 @@
   - Body: `{ status }`
   - Auth: Required (Assignee)
 
+### Comments
+
+- **Add Comment**
+  - `POST /api/comments`
+  - Body: `{ content, task_id }`
+  - Auth: Required
+
+- **Get Task Comments**
+  - `GET /api/tasks/:id/comments`
+  - Auth: Required
+
+- **Update Comment**
+  - `PUT /api/comments/:id`
+  - Body: `{ content }`
+  - Auth: Required (Comment Creator)
+
+- **Delete Comment**
+  - `DELETE /api/comments/:id`
+  - Auth: Required (Admin, Comment Creator)
+
+### Health Check
+
+- **API Health Check**
+  - `GET /api/health`
+  - Auth: Not required
+
+## Security Features
+
+- JWT-based authentication
+- Password hashing with bcrypt
+- Role-based access control
+- Environment variable management
+- Secrets management with Docker secrets
+- CORS protection
+- Rate limiting on authentication endpoints
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Errors**
+   - Check MySQL service is running
+   - Verify credentials in .env file
+   - Ensure database exists
+
+2. **Authentication Issues**
+   - Check JWT_SECRET is properly set
+   - Verify user credentials
+   - Check token expiration
+
+3. **Docker Issues**
+   - Ensure Docker and Docker Compose are installed
+   - Check port conflicts
+   - Verify volume permissions
