@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  db-backup:
+    image: mysql:8.0.36
+    volumes:
+      - ./backup-db.sh:/backup-db.sh
+      - ./backups:/backups
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - DB_NAME=${DB_NAME:-game_dev_management}
+    entrypoint: /bin/bash
+    command: -c "/backup-db.sh"
+    networks:
+      - backend-network
+    depends_on:
+      - db
+
+networks:
+  backend-network:
+    external: true

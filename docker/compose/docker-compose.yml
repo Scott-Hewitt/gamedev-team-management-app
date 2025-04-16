@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ${DB_NAME:-game_dev_management}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Backend API (using local code with nodemon)
+  backend:
+    image: node:18
+    working_dir: /app
+    command: bash -c "npm install && npm run dev"
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      db-setup:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: ${DB_NAME:-game_dev_management}
+      DB_PORT: 3306
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/docs
+      - /app/presentation_materials
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Database setup service (runs migrations and seeds)
+  db-setup:
+    image: node:18
+    working_dir: /app
+    command: bash -c "npm install && npm run setup-db"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: ${DB_NAME:-game_dev_management}
+      DB_PORT: 3306
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/docs
+      - /app/presentation_materials
+    networks:
+      - app-network
+
+  # Frontend React App (using local code with Vite)
+  frontend:
+    image: node:18
+    working_dir: /app
+    command: bash -c "npm install && npm run dev"
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    environment:
+      # This enables Vite to listen on all interfaces
+      HOST: 0.0.0.0
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5173 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
