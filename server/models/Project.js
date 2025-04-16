@@ -4,7 +4,6 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Project extends Model {
     static associate(models) {
-      // Define associations here
       Project.belongsTo(models.User, {
         foreignKey: 'manager_id',
         as: 'manager'
