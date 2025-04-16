@@ -94,15 +94,38 @@
    echo "your_jwt_secret" > secrets/jwt_secret.txt
    ```
 
-3. Start the application:
+3. Configure Docker environment (optional):
+   - The default configuration should work out of the box
+   - If you need to customize, copy `docker/.env.docker` to the root directory as `.env`:
+     ```
+     cp docker/.env.docker .env
+     ```
+   - Edit the `.env` file to change database names, passwords, etc.
+
+4. Start the application:
    ```
    docker-compose up
    ```
+   - This will start the MySQL database, backend API, and frontend application
+   - The first run will take longer as it builds the containers and installs dependencies
+   - Database migrations and initial setup will run automatically
 
-4. Access the application:
+5. Access the application:
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:5000
-   - Monitoring (if enabled): http://localhost:3000 (Grafana), http://localhost:9090 (Prometheus)
+   - Database: localhost:3307 (accessible from your host machine)
+
+6. For production deployment:
+   ```
+   docker-compose -f docker/compose/docker-compose.prod.yml up -d
+   ```
+
+7. To enable monitoring with Prometheus and Grafana:
+   ```
+   docker-compose -f docker-compose.yml -f docker/compose/docker-compose.monitoring.yml up
+   ```
+   - Grafana: http://localhost:3000 (default credentials: admin/admin)
+   - Prometheus: http://localhost:9090
 
 ### Option 2: Running Locally (without Docker)
 
@@ -130,18 +153,18 @@
      ```
      NODE_ENV=development
      PORT=5000
-     
+
      # Database Configuration
      DB_HOST=localhost
      DB_USER=root
      DB_PASSWORD=your_mysql_password
      DB_NAME=game_dev_management
      DB_PORT=3306
-     
+
      # JWT Configuration
      JWT_SECRET=your_jwt_secret_key_here
      JWT_EXPIRES_IN=1d
-     
+
      # User Creation Options
      CREATE_TEST_USERS=true
      FORCE_ADMIN_PASSWORD_RESET=false
@@ -156,25 +179,40 @@
    EXIT;
    ```
 
-6. Run database migrations and seed the database:
+6. Run database setup:
    ```
    npm run setup-db
    ```
+   - This will create the database if it doesn't exist
+   - Run migrations to create tables
+   - Note: This doesn't create users yet
 
-7. Start the backend server (with nodemon):
+7. Create the admin user and test users:
+   ```
+   npm run seed-user
+   ```
+   - This will create the admin user and test users if they don't exist
+   - Default admin credentials: admin@gamedev.com / password123
+
+8. Start the backend server (with nodemon for development):
    ```
    npm run dev
    ```
+   - This will start the backend API server on http://localhost:5000
+   - The server will automatically restart when you make changes
 
-8. In a separate terminal, start the frontend:
+9. In a separate terminal, start the frontend:
    ```
    cd client
    npm run dev
    ```
+   - This will start the Vite development server on http://localhost:5173
+   - The frontend will automatically reload when you make changes
 
-9. Access the application:
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:5000
+10. Access the application:
+    - Frontend: http://localhost:5173
+    - Backend API: http://localhost:5000
+    - API documentation is available in the presentation_materials/api-demo.http file
 
 ## Default Users
 
